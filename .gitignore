@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+.env/
+env/
+venv/
+
+.venv
+.env
+env
+venv
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Editors and OS files
+.DS_Store # macOS
+Thumbs.db # Windows
+.vscode/ # VS Code specific settings
+.idea/ # PyCharm/IntelliJ specific settings
+.cache/
+.pytest_cache/
+htmlcov/
