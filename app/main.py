@@ -9,11 +9,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 
 from app.api.hotels.hotels import router as router_hotels
-from app.config import settings
-
-
-
-print(settings.connection_path())
 
 
 
