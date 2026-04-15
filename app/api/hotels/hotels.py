@@ -1,75 +1,61 @@
 from fastapi import Query, Body, APIRouter
+from sqlalchemy import insert, select, func
 
 
-from app.schemas.hotels import Hotels, Hotels_id, Hotels_None
+from app.db import async_session_maker
+
+from app.models.hotels import HotelsOrm
+
+
+from app.schemas.hotels import Hotels, Hotels_None, HotelsSearch, HotelsSearchNone
 from app.api.hotels.dependencies import PaginationDep
 
 
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
-hotels = [
-    {"id": 1, "city": "Sochi", "name": "Super"},
-    {"id": 2, "city": "Moscow", "name": "Beluchi"},
-    {"id": 3, "city": "Volga", "name": "Volodya"},
-    {"id": 4, "city": "Rostov", "name": "Rassos"},
-    {"id": 5, "city": "Sochi", "name": "RuRu"},
-    {"id": 6, "city": "Sochi", "name": "Super"},
-    {"id": 7, "city": "Moscow", "name": "Beluchi"},
-    {"id": 8, "city": "Volga", "name": "Volodya"},
-    {"id": 9, "city": "Rostov", "name": "Rassos"},
-    {"id": 10, "city": "Sochi", "name": "RuRu"},
-    {"id": 11, "city": "Sochi", "name": "Super"},
-    {"id": 12, "city": "Moscow", "name": "Beluchi"},
-    {"id": 13, "city": "Volga", "name": "Volodya"},
-    {"id": 14, "city": "Rostov", "name": "Rassos"},
-    {"id": 15, "city": "Sochi", "name": "RuRu"},
-    {"id": 16, "city": "Sochi", "name": "Super"},
-    {"id": 17, "city": "Moscow", "name": "Beluchi"},
-    {"id": 18, "city": "Volga", "name": "Volodya"},
-    {"id": 19, "city": "Rostov", "name": "Rassos"},
-    {"id": 20, "city": "Sochi", "name": "RuRu"},
-]
-
 
 
 @router.get("")
-def get_hotels(paginations: PaginationDep,
-               hotel_id: int | None = Query(None, description="Идинтефикатор"),
-               city: str | None = Query(None, description="Город")):
-    """Поинт для получения отеля - (отелей) по id или названию города и названию отеля"""
-    hotels_ = []
+async def get_hotels(paginations: PaginationDep, data: HotelsSearchNone = Query()):
+    """Ручка для получения отеля - (отелей) по id или названию города и названию отеля"""
+    async with async_session_maker() as session:
+        obj = select(HotelsOrm)
 
-    for hotel in hotels:
-        if hotel_id and hotel["id"] != hotel_id:
-            continue
-        if city and hotel["city"] != city:
-            continue
-        hotels_.append(hotel)
+        if data.city:
+            obj = obj.filter(func.lower(HotelsOrm.city).like(f"%{data.city.lower()}%"))
+            
+        if data.title:
+            obj = obj.filter(func.lower(HotelsOrm.title).like(f"%{data.title.lower()}%"))
+        
+        obj = (
+            obj
+            .limit(paginations.per_page)
+            .offset(paginations.per_page * (paginations.page-1))
+        )
+        obj = await session.execute(obj)
     
-    b = paginations.page * paginations.per_page
-    a = b - paginations.per_page
-    
-    return hotels_[a:b]
+    return obj.scalars().all()
 
 
 
 @router.delete("/{hotel_id}")
 def delete_hotels(hotel_id: int):
-    """Поинт для удаления отеля по id"""
-    global hotels
-
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
+    """Ручка для удаления отеля по id"""
+    
     return {"msg": "OK"}
 
 
 
 @router.post("")
-def add_hotels(city: str = Body(description="Название города", embed=True)):
-    global hotels
-    """Поинт для создания нового объекта отеля"""
-    hotels.append({"id": hotels[-1]["id"]+1, "city": city})
-    return {"msg": "OK"}
+async def add_hotels(data: Hotels = Body()):
+    """Ручка для создания нового объекта отеля"""
+    async with async_session_maker() as session:
+        obj = insert(HotelsOrm).values(**data.model_dump())
+        await session.execute(obj)
+        await session.commit()
+
+    return {"message": "OK"}
 
 
 
@@ -79,7 +65,7 @@ def modify_hotels(
     city: str = Body(description="Город"),
     name: str = Body(description="Отель")
     ):
-    """Поинт для полного изменения объекта по идинтификатору"""
+    """Ручка для полного изменения объекта по идинтификатору"""
     global hotels
     
     for hotel in hotels:
@@ -96,7 +82,7 @@ def partially_mod_hotels(
     city: str | None = Body(None, description="Город"),
     name: str | None = Body(None, description="Отель")
     ):
-    """Поинт для частичного изменения объекта по идинтификатору"""
+    """Ручка для частичного изменения объекта по идинтификатору"""
     global hotels
 
     for hotel in hotels:
