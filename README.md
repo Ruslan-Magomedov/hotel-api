@@ -1,9 +1,21 @@
 # hotel-api
 
-### Технологии
-> FastAPI<br>
-> SQLalchemy & Alembic<br>
-> Postgresql<br>
-
 ### Запуск
+```Создайте виртувальное окружение и активируйте его```
+
 ```pip install -r requirements.txt```
+
+```
+Создайте файл ".env" и заполните его данными
+как из примера ниже:
+
+DB_NAME=имя базы данных
+DB_PORT=порт
+DB_HOST=хост
+DB_USER=имя пользователя
+DB_PASS=пароль
+```
+
+```Запустите команду для создания таблиц```
+
+```alimbic upgrade head```
