@@ -15,6 +15,7 @@ from app.db import Base
 
 from app.models.hotels import HotelsOrm
 from app.models.rooms import RoomsOrm
+from app.models.users import UsersOrm
 
 
 
