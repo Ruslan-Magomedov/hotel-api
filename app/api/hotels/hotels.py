@@ -1,14 +1,14 @@
 from fastapi import Query, Body, APIRouter
-from sqlalchemy import insert, select, func
 
 
 from app.db import async_session_maker
 
-from app.models.hotels import HotelsOrm
-
-
-from app.schemas.hotels import Hotels, Hotels_None, HotelsSearch, HotelsSearchNone
+from app.schemas.hotels import HotelsAdd, Hotels_None, HotelsSearchNone
 from app.api.hotels.dependencies import PaginationDep
+
+from app.repositories.hotels import HotelsRepo
+from app.repositories.rooms import RoomsRepo
+
 
 
 
@@ -16,80 +16,61 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 
+@router.get("/{hotel_id}")
+async def get_hotel_by_id(hotel_id: int):
+    """Ручка для получения отеля по id"""
+    async with async_session_maker() as session:
+        return await HotelsRepo(session).get_one_or_none(id=hotel_id)
+
+
+
 @router.get("")
 async def get_hotels(paginations: PaginationDep, data: HotelsSearchNone = Query()):
-    """Ручка для получения отеля - (отелей) по id или названию города и названию отеля"""
+    """Ручка для получения отеля - (отелей) по названию города и названию отеля"""
     async with async_session_maker() as session:
-        obj = select(HotelsOrm)
-
-        if data.city:
-            obj = obj.filter(func.lower(HotelsOrm.city).like(f"%{data.city.lower()}%"))
-            
-        if data.title:
-            obj = obj.filter(func.lower(HotelsOrm.title).like(f"%{data.title.lower()}%"))
-        
-        obj = (
-            obj
-            .limit(paginations.per_page)
-            .offset(paginations.per_page * (paginations.page-1))
+        return await HotelsRepo(session).get_all(
+            title=data.title,
+            city=data.city,
+            limit=paginations.per_page,
+            offset=paginations.per_page * (paginations.page-1)
         )
-        obj = await session.execute(obj)
-    
-    return obj.scalars().all()
-
-
-
-@router.delete("/{hotel_id}")
-def delete_hotels(hotel_id: int):
-    """Ручка для удаления отеля по id"""
-    
-    return {"msg": "OK"}
 
 
 
 @router.post("")
-async def add_hotels(data: Hotels = Body()):
+async def add_hotels(data: HotelsAdd = Body()):
     """Ручка для создания нового объекта отеля"""
     async with async_session_maker() as session:
-        obj = insert(HotelsOrm).values(**data.model_dump())
-        await session.execute(obj)
+        obj = await HotelsRepo(session).add(data)
         await session.commit()
+    return {"status": 200, "data": obj}
 
-    return {"message": "OK"}
+
+
+@router.delete("/{hotel_id}")
+async def delete_hotels(hotel_id: int):
+    """Ручка для удаления отеля по id"""
+    async with async_session_maker() as session:
+        await HotelsRepo(session).delete(id=hotel_id)
+        await session.commit()
+    return {"status": 200}
 
 
 
 @router.put("/{hotel_id}")
-def modify_hotels(
-    hotel_id: int,
-    city: str = Body(description="Город"),
-    name: str = Body(description="Отель")
-    ):
+async def modify_hotels(hotel_id: int, data: HotelsAdd = Body()):
     """Ручка для полного изменения объекта по идинтификатору"""
-    global hotels
-    
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotels[hotel_id-1] = {"id": hotel_id, "city": city, "name": name}
-            return {"msg": "OK"}
-    return {"msg": "Not Found"}
+    async with async_session_maker() as session:
+        await HotelsRepo(session).update(data, id=hotel_id)
+        await session.commit()
+    return {"status": 200}
         
 
 
 @router.patch("/{hotel_id}")
-def partially_mod_hotels(
-    hotel_id: int,
-    city: str | None = Body(None, description="Город"),
-    name: str | None = Body(None, description="Отель")
-    ):
+async def partially_mod_hotels(hotel_id: int, data: Hotels_None = Body()):
     """Ручка для частичного изменения объекта по идинтификатору"""
-    global hotels
-
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            if city:
-                hotels[hotel_id-1]["city"] = city
-            if name:
-                hotels[hotel_id-1]["name"] = name
-            return {"msg": "OK"}
-    return {"msg": "Not Found"}
+    async with async_session_maker() as session:
+        await HotelsRepo(session).update(data, exclude_unset=True, id=hotel_id)
+        await session.commit()
+    return {"status": 200}
