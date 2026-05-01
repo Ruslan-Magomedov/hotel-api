@@ -5,3 +5,4 @@ from app.models.rooms import RoomsOrm
 
 class RoomsRepo(BaseRepo):
     model = RoomsOrm
+    schema = None
