@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 import jwt
 from passlib.context import CryptContext
 from datetime import datetime, timedelta, timezone
@@ -14,8 +15,15 @@ class UsersServices:
         to_encode = data.copy()
         expire = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
         to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        encoded_jwt = jwt.encode(payload=to_encode, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
         return encoded_jwt
+    
+    def decode_token(self, token: str) -> dict:
+        """Декодирование jwt токена"""
+        try:
+            return jwt.decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+        except (jwt.exceptions.DecodeError, jwt.exceptions.ExpiredSignatureError):
+            raise HTTPException(status_code=401, detail="Предоставьте валидный токен")
     
     def hash_password(self, password: str) -> str:
         """Шифрование пароля"""
