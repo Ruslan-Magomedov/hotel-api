@@ -6,16 +6,16 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-
-
-from app.api.hotels.hotels import router as router_hotels
 from app.api.users.users import router as router_users
+from app.api.hotels.hotels import router as router_hotels
+from app.api.rooms.rooms import router as router_rooms
 
 
 
 app = FastAPI()
 app.include_router(router_users)
 app.include_router(router_hotels)
+app.include_router(router_rooms)
 
 
 

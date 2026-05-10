@@ -2,13 +2,9 @@ from fastapi import Query, Body, APIRouter
 
 
 from app.db import async_session_maker
-
 from app.schemas.hotels import HotelsAdd, Hotels_None, HotelsSearchNone
 from app.api.hotels.dependencies import PaginationDep
-
 from app.repositories.hotels import HotelsRepo
-from app.repositories.rooms import RoomsRepo
-
 
 
 

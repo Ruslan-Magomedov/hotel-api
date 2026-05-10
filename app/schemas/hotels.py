@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 
@@ -12,6 +12,7 @@ class HotelsAdd(BaseModel):
 class Hotels(HotelsAdd):
     id: int
 
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Hotels_None(BaseModel):
