@@ -60,10 +60,10 @@ async def modify_rooms(hotel_id: int, room_id: int,  room_data: RoomAddRequest =
 
 
 @router.patch("/{hotel_id}/rooms/{room_id}")
-async def partially_mod_hotels(hotel_id: int, room_id: int, room_data: RoomPatchRequest = Body()):
+async def partially_mod_rooms(hotel_id: int, room_id: int, room_data: RoomPatchRequest = Body()):
     """Ручка для частичного изменения номера по идинтификатору"""
-    _room_data = RoomAdd(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
+    _room_data = RoomPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
     async with async_session_maker() as session:
-        await RoomsRepo(session).update(_room_data, exclude_unset=True, id=room_id)
+        await RoomsRepo(session).update(_room_data, exclude_unset=True, id=room_id, hotel_id=hotel_id)
         await session.commit()
     return {"status": 200}

@@ -1,0 +1,29 @@
+
+
+from app.repositories.users import UsersRepo
+from app.repositories.hotels import HotelsRepo
+from app.repositories.rooms import RoomsRepo
+
+
+
+class DBManager:
+    def __init__(self, session_factory):
+        self.session_factory = session_factory
+
+
+    async def __aenter__(self):
+        self.session = self.session_factory()
+
+        self.users = UsersRepo(self.session)
+        self.hotels = HotelsRepo(self.session)
+        self.rooms = RoomsRepo(self.session)
+
+        return self
+
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.session.close()
+    
+
+    async def commit(self):
+        await self.session.commit()
