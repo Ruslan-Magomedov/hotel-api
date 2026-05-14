@@ -5,7 +5,7 @@ from app.db import async_session_maker
 from app.repositories.users import UsersRepo
 from app.schemas.users import UsersRequestAdd, UsersAdd
 from app.services.users import UsersServices
-from app.api.users.dependencies import UserIdDep
+from app.api.dependencies import UserIdDep
 
 
 
