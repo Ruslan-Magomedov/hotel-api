@@ -3,6 +3,7 @@
 from app.repositories.users import UsersRepo
 from app.repositories.hotels import HotelsRepo
 from app.repositories.rooms import RoomsRepo
+from app.repositories.bookings import BookingsRepo
 
 
 
@@ -17,6 +18,7 @@ class DBManager:
         self.users = UsersRepo(self.session)
         self.hotels = HotelsRepo(self.session)
         self.rooms = RoomsRepo(self.session)
+        self.bookings = BookingsRepo(self.session)
 
         return self
 
