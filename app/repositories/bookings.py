@@ -9,9 +9,6 @@ from app.schemas.bookings import Bookings
 class BookingsRepo(BaseRepo):
     model = BookingsOrm
     schema = Bookings
-
-    async def get_all_bookings(self, limit, offset, **filt):
-        bookings = await select(self.model).fi
     
     async def get_all_bookings(self, limit, offset, **filter_by):
         """Получение всех данных из базы"""
