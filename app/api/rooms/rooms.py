@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Body, Query
 
-from datetime import date
+from datetime import date, timedelta
 
 from app.api.dependencies import DBDep
 from app.schemas.rooms import RoomAdd, RoomAddRequest, RoomPatchRequest, RoomPatch
@@ -21,7 +21,7 @@ async def get_room_by_id(db: DBDep, hotel_id: int, room_id: int):
 @router.get("/{hotel_id}/rooms")
 async def get_hotel_rooms(db: DBDep, hotel_id: int,
                           date_from: date = Query(example=str(date.today())),
-                          date_to: date = Query(example=str(date.today())),
+                          date_to: date = Query(example=str(date.today()+timedelta(days=1))),
                           ):
     """Ручка для получения номеров отеля"""
     return await db.rooms.get_filtered_dy_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)

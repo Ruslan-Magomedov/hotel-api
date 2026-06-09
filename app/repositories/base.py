@@ -11,9 +11,13 @@ class BaseRepo:
         self.session = session
 
     
-    async def get_filtered(self, **filter_by):
+    async def get_filtered(self, *filter, **filter_by):
         """Получение всех данных из базы"""
-        request = select(self.model).filter_by(**filter_by)
+        request = (
+            select(self.model)
+            .filter(*filter)
+            .filter_by(**filter_by)
+        )
         request = await self.session.execute(request)
         return [self.schema.model_validate(model) for model in request.scalars().all()]
     
