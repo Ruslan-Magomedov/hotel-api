@@ -12,8 +12,4 @@ class RoomsRepo(BaseRepo):
 
     async def get_filtered_dy_time(self, hotel_id: int, date_from: date, date_to: date, **filter_by):
         rooms_ids_to_get = rooms_ids_for_bookings(hotel_id, date_from, date_to)
-
-        # from app.db import engine
-        # print(rooms_ids_to_get.compile(bind=engine, compile_kwargs={"literal_binds": True}))
-
         return await self.get_filtered(self.model.id.in_(rooms_ids_to_get))

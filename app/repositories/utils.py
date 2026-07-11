@@ -9,7 +9,7 @@ from app.repositories.base import BaseRepo
 
 
 
-def rooms_ids_for_bookings(hotel_id: int, date_from: date, date_to: date, **filter_by):
+def rooms_ids_for_bookings(date_from: date, date_to: date, hotel_id: int | None = None, **filter_by):
     rooms_count = (
             select(BookingsOrm.room_id, func.count("*").label("rooms_booked"))
             .select_from(BookingsOrm) 
@@ -29,6 +29,11 @@ def rooms_ids_for_bookings(hotel_id: int, date_from: date, date_to: date, **filt
         .select_from(RoomsOrm)
         .outerjoin(rooms_count, RoomsOrm.id == rooms_count.c.room_id)
         .cte(name="rooms_left_table")
+    )
+
+    rooms_ids_for_hotels = (
+    select(RoomsOrm.id)
+    .select_from(RoomsOrm)
     )
 
     rooms_ids_for_hotels = (
