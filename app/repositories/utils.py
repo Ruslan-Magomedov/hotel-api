@@ -9,7 +9,7 @@ from app.repositories.base import BaseRepo
 
 
 
-def rooms_ids_for_bookings(date_from: date, date_to: date, hotel_id: int | None = None, **filter_by):
+def rooms_ids_for_bookings(date_from: date, date_to: date, hotel_id: int | None = None):
     rooms_count = (
             select(BookingsOrm.room_id, func.count("*").label("rooms_booked"))
             .select_from(BookingsOrm) 
@@ -23,7 +23,7 @@ def rooms_ids_for_bookings(date_from: date, date_to: date, hotel_id: int | None 
 
     rooms_left_table = (
         select(
-            RoomsOrm.id.label("rooms_id"),
+            RoomsOrm.id.label("room_id"),
             (RoomsOrm.quantity - func.coalesce(rooms_count.c.rooms_booked, 0)).label("rooms_left"),
         )
         .select_from(RoomsOrm)
@@ -32,23 +32,24 @@ def rooms_ids_for_bookings(date_from: date, date_to: date, hotel_id: int | None 
     )
 
     rooms_ids_for_hotels = (
-    select(RoomsOrm.id)
-    .select_from(RoomsOrm)
-    )
-
-    rooms_ids_for_hotels = (
         select(RoomsOrm.id)
         .select_from(RoomsOrm)
-        .filter_by(hotel_id=hotel_id)
+    )
+
+    if hotel_id is not None:
+        rooms_ids_for_hotels = rooms_ids_for_hotels.filter_by(hotel_id=hotel_id)
+    
+    rooms_ids_for_hotels = (
+        rooms_ids_for_hotels
         .subquery(name="rooms_ids_for_hotels")
     )
 
     rooms_ids_to_get = (
-        select(rooms_left_table.c.rooms_id)
+        select(rooms_left_table.c.room_id)
         .select_from(rooms_left_table)
         .filter(
             rooms_left_table.c.rooms_left > 0,
-            rooms_left_table.c.rooms_id.in_(rooms_ids_for_hotels)
+            rooms_left_table.c.room_id.in_(rooms_ids_for_hotels)
         )
     )
 

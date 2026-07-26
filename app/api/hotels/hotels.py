@@ -1,5 +1,7 @@
 from fastapi import Query, Body, APIRouter
 
+from datetime import date, timedelta
+
 from app.api.dependencies import DBDep, PaginationDep
 from app.schemas.hotels import HotelsAdd, Hotels_None, HotelsSearchNone
 
@@ -17,13 +19,22 @@ async def get_hotel_by_id(db: DBDep, hotel_id: int):
 
 
 @router.get("")
-async def get_hotels(db: DBDep, paginations: PaginationDep, data: HotelsSearchNone = Query()):
+async def get_hotels(
+    db: DBDep,
+    paginations: PaginationDep,
+    data: HotelsSearchNone = Query(),
+    date_from: date = Query(example=str(date.today())),
+    date_to: date = Query(example=str(date.today()+timedelta(days=1)))
+):
     """Ручка для получения отеля - (отелей) по названию города и названию отеля"""
-    return await db.hotels.get_all(
-        title=data.title,
-        city=data.city,
-        limit=paginations.per_page,
-        offset=paginations.per_page * (paginations.page-1)
+    # return await db.hotels.get_all(
+    #     title=data.title,
+    #     city=data.city,
+    #     limit=paginations.per_page,
+    #     offset=paginations.per_page * (paginations.page-1)
+    return await db.hotels.get_filtered_by_time(
+        date_from=date_from,
+        date_to=date_to
     )
 
 
